@@ -9,8 +9,6 @@ formatted as described in the project instructions, into a collection of
 
 The main module calls these functions with the arguments provided at the command
 line, and uses the resulting collections to build an `NEODatabase`.
-
-You'll edit this file in Task 2.
 """
 import csv
 import json
@@ -34,11 +32,13 @@ def load_neos(neo_csv_path):
     #         res.append([row[i] for i in idx])
     # return res
 
+    #res = {}
     res = []
     with open(neo_csv_path, 'r') as f:
         content_dict = csv.DictReader(f)
         for elm in content_dict:
             obj = NearEarthObject(**elm)
+            #res[elm['pdes']] = obj
             res.append(obj)
     return res
 
@@ -49,6 +49,17 @@ def load_approaches(cad_json_path):
     :param neo_csv_path: A path to a JSON file containing data about close approaches.
     :return: A collection of `CloseApproach`es.
     """
+    fields_wanted = ['des', 'cd', 'dist', 'v_rel']
     with open(cad_json_path, 'r') as f:
         content = json.load(f)
-    return content
+
+    #res = {}
+    res = []
+    idx = [content['fields'].index(field) for field in fields_wanted]
+    for itm in content['data']:
+        info = [itm[i] for i in idx]
+        info_dict = {k:v for k, v in zip(fields_wanted, info)}
+        obj = CloseApproach(**info_dict)
+        #res[info_dict['des']] = obj
+        res.append(obj)
+    return res
