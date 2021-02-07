@@ -13,10 +13,9 @@ the supplied `CloseApproach`.
 
 The `limit` function simply limits the maximum number of values produced by an
 iterator.
-
-You'll edit this file in Tasks 3a and 3c.
 """
 import operator
+import itertools
 
 
 class UnsupportedCriterionError(NotImplementedError):
@@ -52,12 +51,12 @@ class AttributeFilter:
         self.op = op
         self.value = value
 
-    def __call__(self, approach):
+    def __call__(self, approach, attr_interest):
         """Invoke `self(approach)`."""
-        return self.op(self.get(approach), self.value)
+        return self.op(self.get(approach, attr_interest), self.value)
 
     @classmethod
-    def get(cls, approach):
+    def get(cls, approach, attr_interest):
         """Get an attribute of interest from a close approach.
 
         Concrete subclasses must override this method to get an attribute of
@@ -70,6 +69,25 @@ class AttributeFilter:
 
     def __repr__(self):
         return f"{self.__class__.__name__}(op=operator.{self.op.__name__}, value={self.value})"
+
+
+# Define sub-classes:
+class GetAttribute(AttributeFilter):
+    """"""
+    def __init__(self, op, value, attr):
+        super().__init__(op, value)
+        # type(self).attr_of_interest = attr
+
+    @classmethod
+    def get(cls, approach, attr_interest):
+        obj = approach
+        if attr_interest in ['hazardous', 'diameter']:
+            obj = getattr(approach, 'neo')
+
+        res = getattr(obj, attr_interest)
+        if attr_interest == 'time':
+            res = res.date()
+        return res
 
 
 def create_filters(date=None, start_date=None, end_date=None,
@@ -106,8 +124,47 @@ def create_filters(date=None, start_date=None, end_date=None,
     :param hazardous: Whether the NEO of a matching `CloseApproach` is potentially hazardous.
     :return: A collection of filters for use with `query`.
     """
-    # TODO: Decide how you will represent your filters.
-    return ()
+    arg_dict = locals()
+    arg_dict = {k: v for k, v in arg_dict.items() if v is not None}
+    res = [] # initialize the collection of filters 
+
+    mapping_param = {'date': 'time', 'start_date': 'time', 'end_date': 'time',
+                'distance_min': 'distance', 'distance_max': 'distance',
+                'velocity_min':'velocity', 'velocity_max':'velocity',
+                'diameter_min': 'diameter', 'diameter_max': 'diameter',
+                'hazardous': 'hazardous'}
+    attr_of_interest = [mapping_param[arg] for arg in arg_dict]
+
+    # If all parameters are None - no filter passed - return empty list:
+    if len(arg_dict) == 0:
+        return res, []
+
+    # Otherwise, for every parameter, create the matching filter:
+    #@todo I think we could do some smart filtering to boost performance
+    # but for now, this works! 
+    for arg, val in arg_dict.items():
+        if arg == 'distance_min':
+            res.append(GetAttribute(operator.ge, val, mapping_param[arg]))
+        elif arg == 'distance_max':
+            res.append(GetAttribute(operator.le, val, mapping_param[arg]))
+        elif arg == 'velocity_min':
+            res.append(GetAttribute(operator.ge, val, mapping_param[arg]))
+        elif arg == 'velocity_max':
+            res.append(GetAttribute(operator.le, val, mapping_param[arg]))
+        elif arg == 'date':
+            res.append(GetAttribute(operator.eq, val, mapping_param[arg]))
+        elif arg == 'start_date':
+            res.append(GetAttribute(operator.ge, val, mapping_param[arg]))
+        elif arg == 'end_date':
+            res.append(GetAttribute(operator.le, val, mapping_param[arg]))
+        elif arg == 'hazardous':
+            res.append(GetAttribute(operator.eq, val, mapping_param[arg]))
+        elif arg == 'diameter_min':
+            res.append(GetAttribute(operator.ge, val, mapping_param[arg]))
+        elif arg == 'diameter_max':
+            res.append(GetAttribute(operator.le, val, mapping_param[arg]))
+
+    return res, attr_of_interest
 
 
 def limit(iterator, n=None):
@@ -119,5 +176,6 @@ def limit(iterator, n=None):
     :param n: The maximum number of values to produce.
     :yield: The first (at most) `n` values from the iterator.
     """
-    # TODO: Produce at most `n` values from the given iterator.
-    return iterator
+    if n == 0:
+        n = None 
+    return itertools.islice(iterator, n)

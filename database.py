@@ -107,6 +107,8 @@ class NEODatabase:
         :param filters: A collection of filters capturing user-specified criteria.
         :return: A stream of matching `CloseApproach` objects.
         """
-        # TODO: Generate `CloseApproach` objects that match all of the filters.
+        filters, params = filters 
         for approach in self._approaches:
-            yield approach
+            filter_results = (filter(approach, param) for filter, param in zip(filters, params))
+            if all(filter_results):
+                yield approach
