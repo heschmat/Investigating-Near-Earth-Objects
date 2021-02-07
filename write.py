@@ -7,8 +7,6 @@ write the data.
 These functions are invoked by the main module with the output of the `limit`
 function and the filename supplied by the user at the command line. The file's
 extension determines which of these functions is used.
-
-You'll edit this file in Part 4.
 """
 import csv
 import json
@@ -25,7 +23,28 @@ def write_to_csv(results, filename):
     :param filename: A Path-like object pointing to where the data should be saved.
     """
     fieldnames = ('datetime_utc', 'distance_au', 'velocity_km_s', 'designation', 'name', 'diameter_km', 'potentially_hazardous')
-    # TODO: Write the results to a CSV file, following the specification in the instructions.
+    # with open(filename, 'w') as outfile:
+    #     writer = csv.writer(outfile)
+    #     # Create the header row
+    #     row_header = ', '.join(fieldnames)
+    #     writer.writerow(row_header)
+    #     for app in results:
+    #         name = '' if app.neo.name is None else app.neo.name
+    #         diam = str(app.neo.diameter)
+    #         hazard = str(app.neo.hazardous)
+    #         row = f'{app.time}, {app.distance}, {app.velocity}, {app._designation}, {name}, {diam}, {hazard}'
+    #         writer.writerow(row)
+
+    with open(filename, 'w', newline='') as outfile:
+        writer = csv.DictWriter(outfile, fieldnames = fieldnames)
+        writer.writeheader()
+        for app in results:
+            app_dict = app.serialize()
+            neo_dict = app_dict['neo']
+            del app_dict['neo']
+            app_dict.update(neo_dict)
+            app_dict = {k: str(v) for k, v in app_dict.items()}
+            writer.writerow(app_dict)
 
 
 def write_to_json(results, filename):
@@ -39,4 +58,9 @@ def write_to_json(results, filename):
     :param results: An iterable of `CloseApproach` objects.
     :param filename: A Path-like object pointing to where the data should be saved.
     """
-    # TODO: Write the results to a JSON file, following the specification in the instructions.
+    with open(filename, 'w') as f:
+        if results is None or len(results) == 0:
+            results = []
+        # Convert each instance to a matching dictionary:
+        results = [app.serialize() for app in results]
+        json.dump(results, f, indent=2)
