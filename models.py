@@ -30,30 +30,23 @@ class NearEarthObject:
     initialized to an empty collection, but eventually populated in the
     `NEODatabase` constructor.
     """
-    # TODO: How can you, and should you, change the arguments to this constructor?
-    # If you make changes, be sure to update the comments in this file.
     def __init__(self, **info):
         """Create a new `NearEarthObject`.
 
         :param info: A dictionary of excess keyword arguments supplied to the constructor.
         """
-        # TODO: Assign information from the arguments passed to the constructor
-        # onto attributes named `designation`, `name`, `diameter`, and `hazardous`.
-        # You should coerce these values to their appropriate data type and
-        # handle any edge cases, such as a empty name being represented by `None`
-        # and a missing diameter being represented by `float('nan')`.
         self.designation = info['pdes']
         self.name = None if len(info['name']) == 0 else info['name']
         self.diameter = float('nan') if len(info['diameter']) == 0 else float(info['diameter'])
         self.hazardous = True if info['pha'] == 'Y' else False 
 
         # Create an empty initial collection of linked approaches.
+        ##This will be linked upon instantiating `NEODatabase`.
         self.approaches = []
 
     @property
     def fullname(self):
         """Return a representation of the full name of this NEO."""
-        # TODO: Use self.designation and self.name to build a fullname for this object.
         return (f'{self.name}-{self.designation}')
 
     def __str__(self):
@@ -87,22 +80,18 @@ class CloseApproach:
     private attribute, but the referenced NEO is eventually replaced in the
     `NEODatabase` constructor.
     """
-    # TODO: How can you, and should you, change the arguments to this constructor?
-    # If you make changes, be sure to update the comments in this file.
     def __init__(self, **info):
         """Create a new `CloseApproach`.
 
         :param info: A dictionary of excess keyword arguments supplied to the constructor.
         """
-        # TODO: Assign information from the arguments passed to the constructor
-        # onto attributes named `_designation`, `time`, `distance`, and `velocity`.
-        # You should coerce these values to their appropriate data type and handle any edge cases.
         self._designation = info['des']
         self.time = cd_to_datetime(info['cd'].strip())
         self.distance = float(info['dist'])
         self.velocity = float(info['v_rel'])
 
         # Create an attribute for the referenced NEO, originally None.
+        ##It will eventually be populated in `NEODatabase`
         self.neo = None
 
     @property
@@ -118,15 +107,12 @@ class CloseApproach:
         formatted string that can be used in human-readable representations and
         in serialization to CSV and JSON files.
         """
-        # TODO: Use this object's `.time` attribute and the `datetime_to_str` function to
-        # build a formatted representation of the approach time.
-        # TODO: Use self.designation and self.name to build a fullname for this object.
         return datetime_to_str(self.time)
 
     @property
     def fullname(self):
         """Full name."""
-        return f'{self._designation}' # f'{self._designation}-{self.name}'
+        return f'{self._designation}'
 
     def __str__(self):
         """Return `str(self)`."""
@@ -139,7 +125,7 @@ class CloseApproach:
 
     def serialize(self):
         """
-        sample output: {'datetime_utc': '2025-11-30 02:18', 'distance_au': 0.39, 'velocity_km_s': 3.72}"""
+        Sample output: {'datetime_utc': '2025-11-30 02:18', 'distance_au': 0.39, 'velocity_km_s': 3.72}"""
         # (, , '', '', 'name', '', '')
         res = {'datetime_utc': datetime_to_str(self.time),
                'distance_au': self.distance,

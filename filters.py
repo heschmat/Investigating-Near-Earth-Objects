@@ -63,6 +63,7 @@ class AttributeFilter:
         interest from the supplied `CloseApproach`.
 
         :param approach: A `CloseApproach` on which to evaluate this filter.
+        :param attr_interest: The attribute of `CloseApproach` we want get the value of. 
         :return: The value of an attribute of interest, comparable to `self.value` via `self.op`.
         """
         raise UnsupportedCriterionError
@@ -73,10 +74,9 @@ class AttributeFilter:
 
 # Define sub-classes:
 class GetAttribute(AttributeFilter):
-    """"""
+    """An auxiliary class to overload the get() in the parent class."""
     def __init__(self, op, value, attr):
         super().__init__(op, value)
-        # type(self).attr_of_interest = attr
 
     @classmethod
     def get(cls, approach, attr_interest):
@@ -124,8 +124,10 @@ def create_filters(date=None, start_date=None, end_date=None,
     :param hazardous: Whether the NEO of a matching `CloseApproach` is potentially hazardous.
     :return: A collection of filters for use with `query`.
     """
+    # Get the parameters that are passed, i.e. they are not None. 
     arg_dict = locals()
     arg_dict = {k: v for k, v in arg_dict.items() if v is not None}
+
     res = [] # initialize the collection of filters 
 
     mapping_param = {'date': 'time', 'start_date': 'time', 'end_date': 'time',
@@ -140,7 +142,7 @@ def create_filters(date=None, start_date=None, end_date=None,
         return res, []
 
     # Otherwise, for every parameter, create the matching filter:
-    #@todo I think we could do some smart filtering to boost performance
+    #@TODO I think we could do some smart filtering to boost performance
     # but for now, this works! 
     for arg, val in arg_dict.items():
         if arg == 'distance_min':

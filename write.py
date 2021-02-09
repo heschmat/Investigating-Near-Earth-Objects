@@ -23,6 +23,8 @@ def write_to_csv(results, filename):
     :param filename: A Path-like object pointing to where the data should be saved.
     """
     fieldnames = ('datetime_utc', 'distance_au', 'velocity_km_s', 'designation', 'name', 'diameter_km', 'potentially_hazardous')
+
+    #@TODO: investigate why this version doesn't work properly? and then delte. 
     # with open(filename, 'w') as outfile:
     #     writer = csv.writer(outfile)
     #     # Create the header row
